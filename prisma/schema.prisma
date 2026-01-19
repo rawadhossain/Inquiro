@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  name           String
+  emailVerified  Boolean
+  image          String?
+  role           UserRole
+  accounts       Account[]
+  sessions       Session[]
+  Survey         Survey[]
+  SurveyResponse SurveyResponse[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Survey {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String?
+  status         SurveyStatus     @default(DRAFT)
+  isPublic       Boolean          @default(false)
+  allowAnonymous Boolean          @default(true)
+  maxResponses   Int?
+  startDate      DateTime?
+  endDate        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  creatorId      String
+  questions      Question[]
+  creator        User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  responses      SurveyResponse[]
+  tokens         SurveyToken[]
+
+  @@map("survey")
+}
+
+model Question {
+  id          Int              @id @default(autoincrement())
+  text        String
+  description String?
+  type        QuestionType
+  isRequired  Boolean          @default(false)
+  order       Int
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  surveyId    Int
+  survey      Survey           @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  options     QuestionOption[]
+  answers     ResponseAnswer[]
+
+  @@map("question")
+}
+
+model QuestionOption {
+  id              Int              @id @default(autoincrement())
+  text            String
+  value           String?
+  order           Int
+  createdAt       DateTime         @default(now())
+  questionId      Int
+  question        Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedAnswers ResponseAnswer[]
+
+  @@map("question_option")
+}
+
+model SurveyResponse {
+  id           Int              @id @default(autoincrement())
+  isAnonymous  Boolean          @default(false)
+  ipAddress    String?
+  userAgent    String?
+  completedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  surveyId     Int
+  respondentId String?
+  tokenId      Int?
+  answers      ResponseAnswer[]
+  respondent   User?            @relation(fields: [respondentId], references: [id])
+  survey       Survey           @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  token        SurveyToken?     @relation(fields: [tokenId], references: [id])
+
+  @@map("survey_response")
+}
+
+model ResponseAnswer {
+  id               Int             @id @default(autoincrement())
+  textValue        String?
+  numberValue      Float?
+  dateValue        DateTime?
+  booleanValue     Boolean?
+  createdAt        DateTime        @default(now())
+  responseId       Int
+  questionId       Int
+  selectedOptionId Int?
+  question         Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  response         SurveyResponse  @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  selectedOption   QuestionOption? @relation(fields: [selectedOptionId], references: [id])
+
+  @@unique([responseId, questionId])
+  @@map("response_answer")
+}
+
+model SurveyToken {
+  id          Int              @id @default(autoincrement())
+  token       String           @unique @default(uuid())
+  isActive    Boolean          @default(true)
+  expiresAt   DateTime?
+  maxUses     Int?
+  currentUses Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  surveyId    Int
+  responses   SurveyResponse[]
+  survey      Survey           @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@map("survey_token")
+}
+
+enum UserRole {
+  RESPONDENT
+  CREATOR
+}
+
+enum SurveyStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum QuestionType {
+  TEXT
+  MULTIPLE_CHOICE
+  CHECKBOX
+  RADIO
+  RATING
+  DATE
+  EMAIL
+  NUMBER
+}
