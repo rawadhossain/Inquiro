@@ -90,13 +90,13 @@ export function AppSidebar() {
 
 	const user = session?.data?.user as User | undefined;
 
-	// Logout mutation - full page redirect so we leave before 401s or layout redirect to signin
+	// Logout mutation - always redirect to landing so user leaves dashboard (even if signOut request fails)
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
 			const result = await authClient.signOut();
 			return result;
 		},
-		onSuccess: () => {
+		onSettled: () => {
 			window.location.href = "/";
 		},
 	});
@@ -214,7 +214,7 @@ export function AppSidebar() {
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
-								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg cursor-pointer"
 								side="bottom"
 								align="end"
 								sideOffset={4}
@@ -233,7 +233,7 @@ export function AppSidebar() {
 								<DropdownMenuItem
 									onClick={handleLogout}
 									disabled={logoutMutation.isPending}
-									className="text-red-600 focus:text-red-600 dark:text-red-400"
+									className="text-red-600 focus:text-red-600 dark:text-red-400 cursor-pointer"
 								>
 									<LogOut className="mr-2 size-4" />
 									{logoutMutation.isPending ? "Logging out..." : "Logout"}

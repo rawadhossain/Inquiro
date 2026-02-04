@@ -343,13 +343,17 @@ export default function ResponsesPage() {
 				</div>
 				{!selectedSurveyId && (
 					<Select value={surveyFilter} onValueChange={setSurveyFilter}>
-						<SelectTrigger className="w-48">
+						<SelectTrigger className="w-48 cursor-pointer">
 							<SelectValue placeholder="All Surveys" />
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Surveys</SelectItem>
 							{surveys?.map((survey) => (
-								<SelectItem key={survey.id} value={survey.id.toString()}>
+								<SelectItem
+									key={survey.id}
+									value={survey.id.toString()}
+									className="cursor-pointer"
+								>
 									{survey.title}
 								</SelectItem>
 							))}
@@ -361,10 +365,18 @@ export default function ResponsesPage() {
 			{/* Main Content */}
 			<Tabs defaultValue={urlTab} className="space-y-4">
 				<TabsList>
-					<TabsTrigger value="all">All Responses</TabsTrigger>
-					<TabsTrigger value="recent">Recent</TabsTrigger>
-					<TabsTrigger value="anonymous">Anonymous</TabsTrigger>
-					<TabsTrigger value="analytics">Analytics</TabsTrigger>
+					<TabsTrigger value="all" className="cursor-pointer">
+						All Responses
+					</TabsTrigger>
+					<TabsTrigger value="recent" className="cursor-pointer">
+						Recent
+					</TabsTrigger>
+					<TabsTrigger value="anonymous" className="cursor-pointer">
+						Anonymous
+					</TabsTrigger>
+					<TabsTrigger value="analytics" className="cursor-pointer">
+						Analytics
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="all" className="space-y-4">

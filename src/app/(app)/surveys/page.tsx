@@ -238,8 +238,12 @@ export default function SurveysPage() {
 			{/* Surveys Content */}
 			<Tabs defaultValue="list" className="space-y-4">
 				<TabsList>
-					<TabsTrigger value="list">List View</TabsTrigger>
-					<TabsTrigger value="grid">Grid View</TabsTrigger>
+					<TabsTrigger value="list" className="cursor-pointer">
+						List View
+					</TabsTrigger>
+					<TabsTrigger value="grid" className="cursor-pointer">
+						Grid View
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="list" className="space-y-4">

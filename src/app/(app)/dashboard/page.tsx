@@ -280,9 +280,15 @@ export default function DashboardPage() {
 			{/* Main Content */}
 			<Tabs defaultValue="surveys" className="space-y-4">
 				<TabsList>
-					<TabsTrigger value="surveys">My Surveys</TabsTrigger>
-					<TabsTrigger value="recent">Recent Activity</TabsTrigger>
-					<TabsTrigger value="analytics">Quick Analytics</TabsTrigger>
+					<TabsTrigger value="surveys" className="cursor-pointer">
+						My Surveys
+					</TabsTrigger>
+					<TabsTrigger value="recent" className="cursor-pointer">
+						Recent Activity
+					</TabsTrigger>
+					<TabsTrigger value="analytics" className="cursor-pointer">
+						Quick Analytics
+					</TabsTrigger>
 				</TabsList>
 
 				<TabsContent value="surveys" className="space-y-4">

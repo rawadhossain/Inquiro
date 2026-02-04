@@ -32,13 +32,13 @@ export default function RespondentLayout({ children }: { children: React.ReactNo
 	const user = session?.data?.user as UserType | undefined;
 	const isAuthenticated = !!session?.data?.session;
 
-	// Logout mutation - full page redirect so we leave before 401s or layout redirect to signin
+	// Logout mutation - always redirect to landing (even if signOut request fails)
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
 			const result = await authClient.signOut();
 			return result;
 		},
-		onSuccess: () => {
+		onSettled: () => {
 			window.location.href = "/";
 		},
 	});
