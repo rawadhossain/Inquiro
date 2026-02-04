@@ -75,15 +75,20 @@ export default function SurveysPage() {
 		},
 	});
 
-	// Use our custom hooks for real data
-	const { data: surveys, isLoading: surveysLoading, error: surveysError } = useMySurveys();
+	const user = session?.data?.user;
+	const isAuthenticated = !!session?.data?.session;
+	const creatorQueriesEnabled = !sessionLoading && isAuthenticated;
+
+	// Use our custom hooks for real data (only when authenticated to avoid 401 race)
+	const {
+		data: surveys,
+		isLoading: surveysLoading,
+		error: surveysError,
+	} = useMySurveys({ enabled: creatorQueriesEnabled });
 
 	// Mutations
 	const deleteSurveyMutation = useDeleteSurvey();
 	const publishSurveyMutation = usePublishSurvey();
-
-	const user = session?.data?.user;
-	const isAuthenticated = !!session?.data?.session;
 
 	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {

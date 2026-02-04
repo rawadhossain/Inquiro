@@ -75,17 +75,26 @@ export default function DashboardPage() {
 		},
 	});
 
-	// Use our custom hooks for real data
-	const { data: surveys, isLoading: surveysLoading, error: surveysError } = useMySurveys();
-	const { data: surveyCount, isLoading: countLoading } = useSurveyCount();
-	const { stats: responseStats, isLoading: responseStatsLoading } = useResponseStats();
+	const user = session?.data?.user;
+	const isAuthenticated = !!session?.data?.session;
+	const creatorQueriesEnabled = !sessionLoading && isAuthenticated;
+
+	// Use our custom hooks for real data (only when authenticated to avoid 401 race)
+	const {
+		data: surveys,
+		isLoading: surveysLoading,
+		error: surveysError,
+	} = useMySurveys({ enabled: creatorQueriesEnabled });
+	const { data: surveyCount, isLoading: countLoading } = useSurveyCount({
+		enabled: creatorQueriesEnabled,
+	});
+	const { stats: responseStats, isLoading: responseStatsLoading } = useResponseStats({
+		enabled: creatorQueriesEnabled,
+	});
 
 	// Mutations
 	const deleteSurveyMutation = useDeleteSurvey();
 	const publishSurveyMutation = usePublishSurvey();
-
-	const user = session?.data?.user;
-	const isAuthenticated = !!session?.data?.session;
 
 	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {

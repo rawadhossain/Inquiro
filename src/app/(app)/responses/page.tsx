@@ -80,14 +80,23 @@ export default function ResponsesPage() {
 		},
 	});
 
-	// Use our custom hooks for real data
-	const { data: surveys, isLoading: surveysLoading } = useMySurveys();
-	const { data: allResponses, isLoading: allResponsesLoading } = useMyResponses();
+	const user = session?.data?.user;
+	const isAuthenticated = !!session?.data?.session;
+	const creatorQueriesEnabled = !sessionLoading && isAuthenticated;
+
+	// Use our custom hooks for real data (only when authenticated to avoid 401 race)
+	const { data: surveys, isLoading: surveysLoading } = useMySurveys({
+		enabled: creatorQueriesEnabled,
+	});
+	const { data: allResponses, isLoading: allResponsesLoading } = useMyResponses({
+		enabled: creatorQueriesEnabled,
+	});
 
 	// If a specific survey is selected, get its responses
 	const selectedSurveyId = urlSurveyId ? parseInt(urlSurveyId) : null;
 	const { data: surveyResponses, isLoading: surveyResponsesLoading } = useResponsesBySurvey(
-		selectedSurveyId || 0
+		selectedSurveyId || 0,
+		{ enabled: creatorQueriesEnabled }
 	);
 
 	// Set survey filter from URL
@@ -96,9 +105,6 @@ export default function ResponsesPage() {
 			setSurveyFilter(urlSurveyId);
 		}
 	}, [urlSurveyId]);
-
-	const user = session?.data?.user;
-	const isAuthenticated = !!session?.data?.session;
 
 	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {
