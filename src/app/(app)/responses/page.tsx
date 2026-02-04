@@ -87,7 +87,7 @@ export default function ResponsesPage() {
 	// If a specific survey is selected, get its responses
 	const selectedSurveyId = urlSurveyId ? parseInt(urlSurveyId) : null;
 	const { data: surveyResponses, isLoading: surveyResponsesLoading } = useResponsesBySurvey(
-		selectedSurveyId || 0,
+		selectedSurveyId || 0
 	);
 
 	// Set survey filter from URL
@@ -100,9 +100,9 @@ export default function ResponsesPage() {
 	const user = session?.data?.user;
 	const isAuthenticated = !!session?.data?.session;
 
-	// Redirect if not authenticated
+	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {
-		router.push("/signin");
+		router.push("/");
 		return null;
 	}
 
@@ -196,7 +196,7 @@ export default function ResponsesPage() {
 			// Add answer values
 			const answerValues = questionHeaders.map((questionText) => {
 				const answer = response.answers?.find(
-					(a: any) => a.question?.text === questionText,
+					(a: any) => a.question?.text === questionText
 				);
 				return (
 					answer?.textValue ||
@@ -285,8 +285,7 @@ export default function ResponsesPage() {
 						</div>
 						<p className="text-xs text-muted-foreground">
 							{Math.round(
-								(registeredResponses.length / (filteredResponses.length || 1)) *
-									100,
+								(registeredResponses.length / (filteredResponses.length || 1)) * 100
 							)}
 							% of total
 						</p>
@@ -307,7 +306,7 @@ export default function ResponsesPage() {
 						</div>
 						<p className="text-xs text-muted-foreground">
 							{Math.round(
-								(anonymousResponses.length / (filteredResponses.length || 1)) * 100,
+								(anonymousResponses.length / (filteredResponses.length || 1)) * 100
 							)}
 							% of total
 						</p>
@@ -450,20 +449,20 @@ export default function ResponsesPage() {
 														{formatDistanceToNow(
 															new Date(
 																response.completedAt ||
-																	response.createdAt,
+																	response.createdAt
 															),
 															{
 																addSuffix: true,
-															},
+															}
 														)}
 													</div>
 													<div className="text-xs text-muted-foreground">
 														{format(
 															new Date(
 																response.completedAt ||
-																	response.createdAt,
+																	response.createdAt
 															),
-															"MMM d, yyyy",
+															"MMM d, yyyy"
 														)}
 													</div>
 												</TableCell>
@@ -556,11 +555,11 @@ export default function ResponsesPage() {
 											<div className="text-sm text-muted-foreground">
 												{formatDistanceToNow(
 													new Date(
-														response.completedAt || response.createdAt,
+														response.completedAt || response.createdAt
 													),
 													{
 														addSuffix: true,
-													},
+													}
 												)}
 											</div>
 										</div>
@@ -630,11 +629,11 @@ export default function ResponsesPage() {
 														{formatDistanceToNow(
 															new Date(
 																response.completedAt ||
-																	response.createdAt,
+																	response.createdAt
 															),
 															{
 																addSuffix: true,
-															},
+															}
 														)}
 													</div>
 												</TableCell>
@@ -685,7 +684,7 @@ export default function ResponsesPage() {
 											{Math.round(
 												(registeredResponses.length /
 													(filteredResponses.length || 1)) *
-													100,
+													100
 											)}
 											%)
 										</div>
@@ -700,7 +699,7 @@ export default function ResponsesPage() {
 											{Math.round(
 												(anonymousResponses.length /
 													(filteredResponses.length || 1)) *
-													100,
+													100
 											)}
 											%)
 										</div>
@@ -718,7 +717,7 @@ export default function ResponsesPage() {
 								<div className="space-y-4">
 									{surveys?.slice(0, 5).map((survey) => {
 										const surveyResponseCount = filteredResponses.filter(
-											(r: any) => r.surveyId === survey.id,
+											(r: any) => r.surveyId === survey.id
 										).length;
 										return (
 											<div
@@ -772,9 +771,9 @@ export default function ResponsesPage() {
 										{format(
 											new Date(
 												selectedResponse.completedAt ||
-													selectedResponse.createdAt,
+													selectedResponse.createdAt
 											),
-											"PPpp",
+											"PPpp"
 										)}
 									</p>
 								</div>

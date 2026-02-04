@@ -82,7 +82,7 @@ export default function HeroSection() {
 							<div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
 								<AnimatedGroup variants={transitionVariants}>
 									<Link
-										href="/signup"
+										href="/signin"
 										className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
 									>
 										<span className="text-foreground text-sm">
@@ -146,12 +146,12 @@ export default function HeroSection() {
 											size="lg"
 											className="rounded-xl px-5 text-base"
 										>
-											<Link href="/signup">
+											<Link href="/signin">
 												<span className="text-nowrap">Get Started</span>
 											</Link>
 										</Button>
 									</div>
-									<Button
+									{/* <Button
 										key={2}
 										asChild
 										size="lg"
@@ -161,7 +161,7 @@ export default function HeroSection() {
 										<Link href="#link">
 											<span className="text-nowrap">View a demo</span>
 										</Link>
-									</Button>
+									</Button> */}
 								</AnimatedGroup>
 							</div>
 						</div>

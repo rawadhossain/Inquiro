@@ -85,9 +85,9 @@ export default function SurveysPage() {
 	const user = session?.data?.user;
 	const isAuthenticated = !!session?.data?.session;
 
-	// Redirect if not authenticated
+	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {
-		router.push("/signin");
+		router.push("/");
 		return null;
 	}
 

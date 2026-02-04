@@ -27,7 +27,7 @@ export default function ClientAppLayout({ children }: { children: React.ReactNod
 	useEffect(() => {
 		if (!isLoading) {
 			if (!isAuthenticated) {
-				router.push("/signin");
+				router.push("/");
 				return;
 			}
 

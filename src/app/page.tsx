@@ -9,38 +9,38 @@ import FeaturesSection from "@/components/landing/features";
 import FAQs from "@/components/landing/faq";
 
 export default function Home() {
-  const router = useRouter();
+	const router = useRouter();
 
-  const { data: session, isLoading } = useQuery({
-    queryKey: ["session"],
-    queryFn: async () => {
-      const result = await authClient.getSession();
-      return result;
-    },
-  });
+	const { data: session, isLoading } = useQuery({
+		queryKey: ["session"],
+		queryFn: async () => {
+			const result = await authClient.getSession();
+			return result;
+		},
+	});
 
-  const user = session?.data?.user as any;
-  const isAuthenticated = !!session?.data?.session;
+	const user = session?.data?.user as any;
+	const isAuthenticated = !!session?.data?.session;
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
-      if (user.role === "CREATOR") {
-        router.push("/dashboard");
-      } else if (user.role === "RESPONDENT") {
-        router.push("/respondent");
-      }
-    }
-  }, [isAuthenticated, user, isLoading, router]);
+	useEffect(() => {
+		if (!isLoading && isAuthenticated && user) {
+			if (user.role === "CREATOR") {
+				router.push("/dashboard");
+			} else if (user.role === "RESPONDENT") {
+				router.push("/respondent");
+			}
+		}
+	}, [isAuthenticated, user, isLoading, router]);
 
-  if (!isAuthenticated) {
-    return (
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <FAQs />
-      </main>
-    );
-  }
+	if (!isAuthenticated) {
+		return (
+			<main>
+				<HeroSection />
+				<FeaturesSection />
+				<FAQs />
+			</main>
+		);
+	}
 
-  return null;
+	return null;
 }

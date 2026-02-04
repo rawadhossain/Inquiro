@@ -90,14 +90,14 @@ export function AppSidebar() {
 
 	const user = session?.data?.user as User | undefined;
 
-	// Logout mutation
+	// Logout mutation - full page redirect so we leave before 401s or layout redirect to signin
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
 			const result = await authClient.signOut();
 			return result;
 		},
 		onSuccess: () => {
-			router.push("/signin");
+			window.location.href = "/";
 		},
 	});
 

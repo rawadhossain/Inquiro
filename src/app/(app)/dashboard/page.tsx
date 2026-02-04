@@ -87,9 +87,9 @@ export default function DashboardPage() {
 	const user = session?.data?.user;
 	const isAuthenticated = !!session?.data?.session;
 
-	// Redirect to signin if not authenticated
+	// Redirect to landing if not authenticated
 	if (!sessionLoading && !isAuthenticated) {
-		router.push("/signin");
+		router.push("/");
 		return null;
 	}
 

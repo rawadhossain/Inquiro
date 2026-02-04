@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-// Define route patterns
-const publicRoutes = [
+// Routes that require redirect to app when user is already authenticated
+const redirectIfAuthenticatedRoutes = [
 	"/",
 	"/signin",
 	"/signup",
@@ -11,17 +11,36 @@ const publicRoutes = [
 	"/check-email",
 	"/email-verified",
 ];
-const protectedRoutes = ["/dashboard", "/surveys", "/responses"];
-const respondentRoutes = ["/respondent", "/survey"];
+
+function getAppRedirectPath(role: string | undefined): string {
+	if (role === "RESPONDENT") return "/respondent";
+	return "/dashboard";
+}
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	if (publicRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
+	if (pathname.startsWith("/api/")) {
 		return NextResponse.next();
 	}
 
-	if (pathname.startsWith("/api/")) {
+	const isRedirectIfAuthRoute = redirectIfAuthenticatedRoutes.some(
+		(route) => pathname === route || pathname.startsWith(route + "/")
+	);
+
+	if (isRedirectIfAuthRoute) {
+		try {
+			const session = await auth.api.getSession({
+				headers: request.headers,
+			});
+			// Authenticated user on landing or auth pages → send to app
+			if (session?.user) {
+				const redirectPath = getAppRedirectPath(session.user.role as string);
+				return NextResponse.redirect(new URL(redirectPath, request.url));
+			}
+		} catch {
+			// Ignore session errors; allow request to continue
+		}
 		return NextResponse.next();
 	}
 
@@ -30,15 +49,12 @@ export async function middleware(request: NextRequest) {
 			headers: request.headers,
 		});
 
-		// No session found - redirect to signin
 		if (!session) {
 			const signInUrl = new URL("/signin", request.url);
 			signInUrl.searchParams.set("callbackUrl", pathname);
 			return NextResponse.redirect(signInUrl);
 		}
 
-		// // Role-based access control (if needed)
-		// // Uncomment and modify based on your role requirements
 		if (pathname.startsWith("/dashboard")) {
 			if (session.user.role !== "CREATOR") {
 				return NextResponse.redirect(new URL("/respondent", request.url));
@@ -51,10 +67,8 @@ export async function middleware(request: NextRequest) {
 			}
 		}
 
-		// Allow authenticated users to proceed
 		return NextResponse.next();
 	} catch (error) {
-		// Error getting session - redirect to signin
 		console.error("Middleware auth error:", error);
 		const signInUrl = new URL("/signin", request.url);
 		signInUrl.searchParams.set("callbackUrl", pathname);
