@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 
 // Routes that require redirect to app when user is already authenticated
 const redirectIfAuthenticatedRoutes = [
@@ -17,6 +16,24 @@ function getAppRedirectPath(role: string | undefined): string {
 	return "/dashboard";
 }
 
+async function getSession(
+	request: NextRequest
+): Promise<{ user?: { role?: string }; session?: unknown } | null> {
+	try {
+		const sessionUrl = new URL("/api/auth/session", request.url);
+		const res = await fetch(sessionUrl.toString(), {
+			headers: {
+				cookie: request.headers.get("cookie") ?? "",
+			},
+		});
+		if (!res.ok) return null;
+		const data = await res.json();
+		return data?.user != null ? data : null;
+	} catch {
+		return null;
+	}
+}
+
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
@@ -29,62 +46,37 @@ export async function middleware(request: NextRequest) {
 	);
 
 	if (isRedirectIfAuthRoute) {
-		try {
-			const session = await auth.api.getSession({
-				headers: request.headers,
-			});
-			// Authenticated user on landing or auth pages → send to app
-			if (session?.user) {
-				const redirectPath = getAppRedirectPath(session.user.role as string);
-				return NextResponse.redirect(new URL(redirectPath, request.url));
-			}
-		} catch {
-			// Ignore session errors; allow request to continue
+		const session = await getSession(request);
+		if (session?.user) {
+			const redirectPath = getAppRedirectPath(session.user.role);
+			return NextResponse.redirect(new URL(redirectPath, request.url));
 		}
 		return NextResponse.next();
 	}
 
-	try {
-		const session = await auth.api.getSession({
-			headers: request.headers,
-		});
+	const session = await getSession(request);
 
-		if (!session) {
-			const signInUrl = new URL("/signin", request.url);
-			signInUrl.searchParams.set("callbackUrl", pathname);
-			return NextResponse.redirect(signInUrl);
-		}
-
-		if (pathname.startsWith("/dashboard")) {
-			if (session.user.role !== "CREATOR") {
-				return NextResponse.redirect(new URL("/respondent", request.url));
-			}
-		}
-
-		if (pathname.startsWith("/respondent")) {
-			if (session.user.role !== "RESPONDENT") {
-				return NextResponse.redirect(new URL("/dashboard", request.url));
-			}
-		}
-
-		return NextResponse.next();
-	} catch (error) {
-		console.error("Middleware auth error:", error);
+	if (!session?.user) {
 		const signInUrl = new URL("/signin", request.url);
 		signInUrl.searchParams.set("callbackUrl", pathname);
 		return NextResponse.redirect(signInUrl);
 	}
+
+	if (pathname.startsWith("/dashboard")) {
+		if (session.user.role !== "CREATOR") {
+			return NextResponse.redirect(new URL("/respondent", request.url));
+		}
+	}
+
+	if (pathname.startsWith("/respondent")) {
+		if (session.user.role !== "RESPONDENT") {
+			return NextResponse.redirect(new URL("/dashboard", request.url));
+		}
+	}
+
+	return NextResponse.next();
 }
 
 export const config = {
-	matcher: [
-		/*
-		 * Match all request paths except for the ones starting with:
-		 * - _next/static (static files)
-		 * - _next/image (image optimization files)
-		 * - favicon.ico (favicon file)
-		 * - public assets (images, etc.)
-		 */
-		"/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-	],
+	matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
