@@ -19,6 +19,8 @@ export default function ClientAppLayout({ children }: { children: React.ReactNod
 			const result = await authClient.getSession();
 			return result;
 		},
+		staleTime: 60_000,
+		gcTime: 5 * 60_000,
 	});
 
 	const user = session?.data?.user; // Better auth user with additional fields

@@ -45,13 +45,15 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, startTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useCreateSurvey, useUpdateSurvey } from "@/hooks/use-surveys";
-import { useCreateQuestion } from "@/hooks/use-questions";
+import { useCreateSurvey, useUpdateSurvey, surveyKeys } from "@/hooks/use-surveys";
+import { questionKeys } from "@/hooks/use-questions";
+import apiClient from "@/lib/api-client";
 import {
   CreateSurveyRequest,
   QuestionType,
@@ -93,6 +95,7 @@ const questionTypes = [
 
 export default function CreateSurveyPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [questions, setQuestions] = useState<LocalQuestion[]>([]);
   const [activeTab, setActiveTab] = useState("basic");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -101,7 +104,6 @@ export default function CreateSurveyPage() {
   // API hooks
   const createSurveyMutation = useCreateSurvey();
   const updateSurveyMutation = useUpdateSurvey();
-  const createQuestionMutation = useCreateQuestion();
 
   const {
     register,
@@ -132,14 +134,16 @@ export default function CreateSurveyPage() {
       options?: { id: string; text: string; order: number }[];
     }>;
   }) => {
-    setValue("title", aiSurvey.title);
-    setValue("description", aiSurvey.description);
+    startTransition(() => {
+      setValue("title", aiSurvey.title);
+      setValue("description", aiSurvey.description);
 
-    // Set questions from AI
-    setQuestions(aiSurvey.questions);
+      // Set questions from AI
+      setQuestions(aiSurvey.questions);
 
-    // Switch to questions tab to show generated questions
-    setActiveTab("questions");
+      // Switch to questions tab to show generated questions
+      setActiveTab("questions");
+    });
   };
 
   const addQuestion = (type: LocalQuestion["type"]) => {
@@ -223,22 +227,19 @@ export default function CreateSurveyPage() {
     }));
   };
 
-  // Create questions sequentially after survey creation
+  /** Persists questions in parallel and syncs TanStack caches (mutate() was fire-and-forget). */
   const createQuestionsForSurvey = async (
     surveyId: number,
-    questions: CreateQuestionRequest[]
+    apiQuestions: CreateQuestionRequest[],
   ) => {
-    for (const questionData of questions) {
-      try {
-        createQuestionMutation.mutate({
-          surveyId,
-          data: questionData,
-        });
-      } catch (error) {
-        console.error("Failed to create question:", error);
-        throw error;
-      }
-    }
+    await Promise.all(
+      apiQuestions.map((questionData) =>
+        apiClient.questions.createQuestion(surveyId, questionData),
+      ),
+    );
+    await queryClient.invalidateQueries({ queryKey: questionKeys.bySurvey(surveyId) });
+    await queryClient.invalidateQueries({ queryKey: surveyKeys.detail(surveyId) });
+    await queryClient.invalidateQueries({ queryKey: surveyKeys.my() });
   };
 
   const onSubmit = async (data: SurveyForm) => {

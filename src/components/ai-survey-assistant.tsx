@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,9 +56,17 @@ interface AIFormData {
   additionalContext?: string;
 }
 
+const STAGE_MESSAGES = [
+  "Outlining your survey…",
+  "Drafting questions…",
+  "Choosing question types…",
+  "Polishing wording…",
+] as const;
+
 export function AISurveyAssistant({ onSurveyGenerated }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [stageIndex, setStageIndex] = useState(0);
   const {
     register,
     handleSubmit,
@@ -74,6 +82,17 @@ export function AISurveyAssistant({ onSurveyGenerated }: AIAssistantProps) {
   });
 
   const generateSurveyMutation = useGenerateAISurvey();
+
+  useEffect(() => {
+    if (!generateSurveyMutation.isPending) {
+      setStageIndex(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setStageIndex((i) => (i + 1) % STAGE_MESSAGES.length);
+    }, 2800);
+    return () => clearInterval(id);
+  }, [generateSurveyMutation.isPending]);
 
   const onSubmit = async (data: AIFormData) => {
     try {
@@ -290,7 +309,15 @@ export function AISurveyAssistant({ onSurveyGenerated }: AIAssistantProps) {
             </CardContent>
           </Card>
 
-          <DialogFooter className="pt-6 border-t">
+          <DialogFooter className="pt-6 border-t flex flex-col gap-2 sm:flex-row sm:justify-end sm:items-center sm:gap-4">
+            {generateSurveyMutation.isPending && (
+              <p
+                className="text-sm text-muted-foreground text-left sm:mr-auto sm:order-first w-full sm:w-auto"
+                aria-live="polite"
+              >
+                {STAGE_MESSAGES[stageIndex]}
+              </p>
+            )}
             <Button
               type="button"
               variant="outline"

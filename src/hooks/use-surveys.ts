@@ -79,11 +79,12 @@ export function useCreateSurvey() {
 	const mutation = useMutation({
 		mutationFn: (data: CreateSurveyRequest) => apiClient.surveys.createSurvey(data),
 		onSuccess: (newSurvey) => {
-			// Invalidate and refetch surveys
-			queryClient.invalidateQueries({ queryKey: surveyKeys.my() });
+			queryClient.setQueryData(surveyKeys.my(), (old: Survey[] | undefined) =>
+				old ? [newSurvey, ...old.filter((s) => s.id !== newSurvey.id)] : [newSurvey],
+			);
+
 			queryClient.invalidateQueries({ queryKey: surveyKeys.count() });
 
-			// Add the new survey to the cache
 			queryClient.setQueryData(surveyKeys.detail(newSurvey.id), newSurvey);
 		},
 	});
