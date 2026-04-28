@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useGenerateAISurvey } from "@/hooks/use-ai-survey";
+import { getApiRouteErrorMessage } from "@/lib/toast-utils";
 
 interface AIAssistantProps {
   onSurveyGenerated: (survey: {
@@ -113,16 +114,22 @@ export function AISurveyAssistant({ onSurveyGenerated }: AIAssistantProps) {
       onSurveyGenerated(transformedSurvey);
       setIsOpen(false);
       reset();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("AI generation error:", error);
-      const errorMessage =
-        error?.response?.data?.error || "Failed to generate survey";
-      setApiError(errorMessage);
+      setApiError(
+        getApiRouteErrorMessage(error, "Failed to generate survey. Try again."),
+      );
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open) setApiError(null);
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline">
           <Sparkles className="mr-2 h-4 w-4" />
@@ -142,16 +149,23 @@ export function AISurveyAssistant({ onSurveyGenerated }: AIAssistantProps) {
 
         {/* API Error Alert */}
         {apiError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-start space-x-3">
-              <div className="text-red-500 mt-0.5">⚠️</div>
-              <div>
-                <h4 className="font-medium text-red-900">AI Service Error</h4>
-                <p className="text-sm text-red-700 mt-1">{apiError}</p>
-                {apiError.includes("not configured") && (
-                  <p className="text-xs text-red-600 mt-2">
-                    💡 <strong>For developers:</strong> Add your OPENAI_API_KEY
-                    to the environment variables to enable AI survey generation.
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 mb-6 text-destructive"
+          >
+            <div className="flex gap-3">
+              <span className="mt-0.5 shrink-0" aria-hidden="true">
+                ⚠️
+              </span>
+              <div className="min-w-0 space-y-1">
+                <p className="text-sm font-medium text-foreground">
+                  Could not generate survey
+                </p>
+                <p className="text-sm text-muted-foreground">{apiError}</p>
+                {apiError.toLowerCase().includes("not configured") && (
+                  <p className="text-xs text-muted-foreground pt-1 border-t border-destructive/20 mt-2">
+                    Self-hosting? Set OPENAI_API_KEY in your server environment
+                    and restart the app.
                   </p>
                 )}
               </div>
